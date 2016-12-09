@@ -1,15 +1,15 @@
 *****************************************************************************
-* Projeto: STJ - Superior Tribunal de Justiça
+* Projeto: STJ - Superior Tribunal de JustiÃ§a
 * GAP/Interface: ER03 GAP010
 * Programa: YERC0001
-* Objetivo do programa: Programa de Carga Concurso Público, Cadastro de candidatos
+* Objetivo do programa: Programa de Carga Concurso PÃºblico, Cadastro de candidatos
 * no E-recruiting.
 * Desenvolvedor: Thiago Ramos de Sousa
-* Data Criação: 25/09/2015
+* Data CriaÃ§Ã£o: 25/09/2015
 *****************************************************************************
-* Histórico de Mudanças
+* HistÃ³rico de MudanÃ§as
 *----------------------------------------------------------------------*
-* Num.  Data         Autor          Request      Descrição             *
+* Num.  Data         Autor          Request      DescriÃ§Ã£o             *
 *----------------------------------------------------------------------*
 *                                                                      *
 *----------------------------------------------------------------------*
@@ -18,54 +18,54 @@
 REPORT yerc0001.
 
 *----------------------------------------------------------------------*
-* TIPOS                                                                *
+* Types                                                               *
 *----------------------------------------------------------------------*
-TYPES: BEGIN OF y_excel, "Estrutura da Tabela que Receberá o Arquivo
+TYPES: BEGIN OF y_excel,        "Estrutura da Tabela que ReceberÃ¡ o Arquivo
          codevent   TYPE char5,
          nivescng   TYPE char1,
          semestng   TYPE char1,
          cursoeng   TYPE char20,
          descridg   TYPE char255,
          codigodg   TYPE char8,
-         nminccdt   TYPE hrp5200-zznumero_inscricao, "carregar via função
-         nomecdt    TYPE char80,                     "assign_new_user-p_alias
-         cpf        TYPE hrp5202-cpfnr,              "carregar via função
-         identcdt   TYPE hrp5202-ident,              "carregar via função
-         dtnascdt   TYPE char10, "but000-birthdt,    "carregar via função
-         endeletr   TYPE hrp5102-e_mail,             "assign_new_user-p_email
-         telcdt     TYPE adtel-tel_number,           "carregar via função
-         endcdt     TYPE addr2_data-street,          "carregar via função
-         coendcdt   TYPE addr2_data-street,          "carregar via função
-         nmendcdt   TYPE addr2_data-house_num1,      "carregar via função
-         bairrcdt   TYPE addr2_data-str_suppl3,      "carregar via função
-         cidadcdt   TYPE addr2_data-city1,           "carregar via função
-         sigufcdt   TYPE addr2_data-region,          "carregar via função
-         cepcdt     TYPE addr2_data-post_code1,      "carregar via função
-         cdtptnec   TYPE hrp5202-sbgru,              "carregar via função
-         cdtdnegr   TYPE hrp5202-race,               "carregar via função
-         notprobj   TYPE hrp5200-zznota_pocg,        "carregar via função
-         notprobje  TYPE hrp5200-zznota_poce,        "carregar via função
-         notfiprb   TYPE hrp5200-zznota_fpo,         "carregar via função
-         stcdtprb   TYPE hrp5200-zzsituacao_cpo,     "carregar via função
-         clcdtprb   TYPE hrp5200-zzsituacao_cpo,     "carregar via função
-         clcdtprbde TYPE hrp5200-zzclassificacao_cpod, "carregar via função
-         clcdtprbne TYPE hrp5200-zzclassificacao_fc_cn, "carregar via função
-         ntprvdis   TYPE hrp5200-zznota_pd,            "carregar via função
-         stcdtprdi  TYPE hrp5200-zzsituacao_cpd,       "carregar via função
-         clafncdt   TYPE hrp5200-zzclassificacao_fc,   "carregar via função
-         clafncdtd  TYPE hrp5200-zzclassificacao_fc_d, "carregar via função
-         clafncdtn  TYPE hrp5200-zzclassificacao_fc_cn, "carregar via função
-         incdtsubj  TYPE hrp5200-zzindicacao_cc_sj,     "carregar via função
-         tipfamili  TYPE hrp5202-zztipo_de_familiar01, "carregar via função
-         filiacao   TYPE hrp5202-zzfiliacao01,         "carregar via função
+         nminccdt   TYPE hrp5200-zznumero_inscricao, 
+         nomecdt    TYPE char80,                     
+         cpf        TYPE hrp5202-cpfnr,             
+         identcdt   TYPE hrp5202-ident,              
+         dtnascdt   TYPE char10, "but000-birthdt,    
+         endeletr   TYPE hrp5102-e_mail,             
+         telcdt     TYPE adtel-tel_number,          
+         endcdt     TYPE addr2_data-street,          
+         coendcdt   TYPE addr2_data-street,          
+         nmendcdt   TYPE addr2_data-house_num1,      
+         bairrcdt   TYPE addr2_data-str_suppl3,      
+         cidadcdt   TYPE addr2_data-city1,           
+         sigufcdt   TYPE addr2_data-region,          
+         cepcdt     TYPE addr2_data-post_code1,      
+         cdtptnec   TYPE hrp5202-sbgru,              
+         cdtdnegr   TYPE hrp5202-race,               
+         notprobj   TYPE hrp5200-zznota_pocg,       
+         notprobje  TYPE hrp5200-zznota_poce,        
+         notfiprb   TYPE hrp5200-zznota_fpo,         
+         stcdtprb   TYPE hrp5200-zzsituacao_cpo,    
+         clcdtprb   TYPE hrp5200-zzsituacao_cpo,     
+         clcdtprbde TYPE hrp5200-zzclassificacao_cpod, 
+         clcdtprbne TYPE hrp5200-zzclassificacao_fc_cn, 
+         ntprvdis   TYPE hrp5200-zznota_pd,            
+         stcdtprdi  TYPE hrp5200-zzsituacao_cpd,       
+         clafncdt   TYPE hrp5200-zzclassificacao_fc,   
+         clafncdtd  TYPE hrp5200-zzclassificacao_fc_d, 
+         clafncdtn  TYPE hrp5200-zzclassificacao_fc_cn, 
+         incdtsubj  TYPE hrp5200-zzindicacao_cc_sj,    
+         tipfamili  TYPE hrp5202-zztipo_de_familiar01, 
+         filiacao   TYPE hrp5202-zzfiliacao01,        
        END OF y_excel,
 
-       BEGIN OF y_f4header, "Estrutura do Match Code do Campo Requisição
+       BEGIN OF y_f4header,  "Estrutura do Match Code do Campo RequisiÃ§Ã£o
          objid  TYPE hrp5125-objid,
          header TYPE hrp5125-header,
        END OF   y_f4header,
 
-       BEGIN OF y_return,
+       BEGIN OF y_return,    
          type       TYPE bapiret2-type,
          id         TYPE bapiret2-id,
          number     TYPE bapiret2-number,
@@ -74,8 +74,7 @@ TYPES: BEGIN OF y_excel, "Estrutura da Tabela que Receberá o Arquivo
          log_msg_no TYPE bapiret2-log_msg_no,
          message_v1 TYPE bapiret2-message_v1,
        END OF y_return.
-
-
+       
 *----------------------------------------------------------------------*
 * TABELAS INTERNAS                                                     *
 *----------------------------------------------------------------------*
@@ -100,11 +99,11 @@ DATA: vg_data(100) TYPE c,
       vg_erro(1)   TYPE c VALUE 'E',
       vg_sucs(01)  TYPE c VALUE 'S'.
 
-DATA: wa_result       TYPE char50.
-DATA: wa_req_hrobject TYPE hrobject.
-DATA: wa_data      TYPE y_excel,
-      wa_dados     TYPE y_excel,
-      wa_yeryt0001 TYPE yeryt0001.
+DATA: wa_result       TYPE char50,
+      wa_req_hrobject TYPE hrobject,
+      wa_data         TYPE y_excel,
+      wa_dados        TYPE y_excel,
+      wa_yeryt0001    TYPE yeryt0001.
 
 DATA: wa_salv_table TYPE REF TO cl_salv_table,
       wa_columns    TYPE REF TO cl_salv_columns_table.
@@ -124,10 +123,8 @@ DATA: c_enab(4) TYPE c VALUE 'ENAB',
 *----------------------------------------------------------------------*
 * Objetos globais
 *----------------------------------------------------------------------*
-DATA:
-  og_ex   TYPE REF TO cx_hrrcf,
-  og_bupa TYPE REF TO cl_hrrcf_candidate_bupa_bl.
-
+DATA:  og_ex   TYPE REF TO cx_hrrcf,
+       og_bupa TYPE REF TO cl_hrrcf_candidate_bupa_bl.
 
 DATA: og_candidate TYPE REF TO cl_hrrcf_candidate.
 DATA: lo_candidacy TYPE REF TO cl_hrrcf_candidacy.
@@ -138,7 +135,7 @@ DATA: lo_candidacy TYPE REF TO cl_hrrcf_candidacy.
 FIELD-SYMBOLS: <fs_dados> TYPE y_excel.
 
 *----------------------------------------------------------------------*
-* TELA DE SELEÇÃO                                                      *
+* TELA DE SELEÃ‡ÃƒO                                                      *
 *----------------------------------------------------------------------*
 
 SELECTION-SCREEN BEGIN OF BLOCK b00 WITH FRAME TITLE text-000.
@@ -154,10 +151,10 @@ SELECTION-SCREEN END OF BLOCK b01.
 SELECTION-SCREEN END OF BLOCK b00.
 
 *----------------------------------------------------------------------*
-* ÁREA DE PROCESSAMENTO DE TELA                                        *
+* ÃREA DE PROCESSAMENTO DE TELA                                        *
 *----------------------------------------------------------------------*
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_header.
-*---> Obtem Match-Code do campo Requisição
+*---> Obtem Match-Code do campo RequisiÃ§Ã£o
   PERFORM z_header_f4help.
 
 AT SELECTION-SCREEN.
@@ -167,19 +164,19 @@ AT SELECTION-SCREEN.
   ENDIF.
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
-*  IF p_locl EQ 'X'.
 *---> Abre pop-up para busca do arquivo CSV
-  PERFORM z_buscafile CHANGING p_file.
-*  ENDIF.
 
+  PERFORM z_buscafile CHANGING p_file.
+  
 *----------------------------------------------------------------------*
-* ÁREA PARA SELEÇÃO                                                    *
+* ÃREA PARA SELEÃ‡ÃƒO                                                    *
 *----------------------------------------------------------------------*
 START-OF-SELECTION.
 
-* Inicializa tabelas internas e variáveis
+* Inicializa tabelas internas e variÃ¡veis
   PERFORM f_inicializa.
-
+  
+* ValidaÃ§Ã£o processamento
   PERFORM f_valida_processamento.
 
 * Carrega o arquivo a ser processado
@@ -188,13 +185,13 @@ START-OF-SELECTION.
 * Processa o arquivo carregado
   PERFORM f_processa_arquivo.
 
-* Obtém a variante de planejamento
+* ObtÃ©m a variante de planejamento
   PERFORM f_obtem_var_planejamento.
 
-* Cria o usuário e a senha no E-recruiting
+* Cria o usuÃ¡rio e a senha no E-recruiting
   PERFORM f_cria_usuario.
 
-* Obtém candidaturas para a requisição
+* ObtÃ©m candidaturas para a requisiÃ§Ã£o
   PERFORM f_obtem_candidaturas.
 
 * Grava dados pessoais
@@ -203,7 +200,7 @@ START-OF-SELECTION.
 *Grava Dados
   PERFORM f_grava_dados.
 
-* Exibe relatório com log do processamento
+* Exibe relatÃ³rio com log do processamento
   PERFORM f_exibe_relatorio.
 
 *&---------------------------------------------------------------------*
@@ -241,7 +238,7 @@ FORM f_exibe_relatorio .
         vl_texto TYPE char50,
         vl_lines TYPE numc06.
 
-* Se não houver registros com erro, exibe log de sucesso
+* Se nÃ£o houver registros com erro, exibe log de sucesso
   IF t_return[] IS INITIAL.
     DESCRIBE TABLE t_data LINES vl_lines.
     CONCATENATE text-009 vl_lines text-010
@@ -273,7 +270,7 @@ FORM f_exibe_relatorio .
     CATCH cx_salv_object_not_found.                     "#EC NO_HANDLER
   ENDTRY.
 
-* Exibe o relatório
+* Exibe o relatÃ³rio
   wa_salv_table->display( ).
 
 ENDFORM.                    "f_exibe_relatorio
@@ -289,35 +286,34 @@ FORM f_dados_pessoais .
         vl_cand_hrobject TYPE hrobject,
         wl_records       TYPE LINE OF rcf_t_p1000.
 
-
   LOOP AT t_data INTO wa_dados.
     wa_data = wa_dados.
     vl_usuario = wa_dados-cpf.
 
-*   Obtém o usuário do candidato a partir do Alias
+*   ObtÃ©m o usuÃ¡rio do candidato a partir do Alias
     PERFORM f_obtem_usuario CHANGING vl_usuario  vl_bname.
 
     CHECK NOT vl_bname IS INITIAL.
 
-*   Obtém o ID do candidato (objeto NA)
+*   ObtÃ©m o ID do candidato (objeto NA)
     PERFORM f_obtem_id_cand CHANGING vl_bname    vl_cand_hrobject.
 
-*   Obtém / Atualiza o infotipo 5202 (RG, CPF, Deficiência)
+*   ObtÃ©m / Atualiza o infotipo 5202 (RG, CPF, DeficiÃªncia)
     PERFORM f_atualiza_5202 USING vl_cand_hrobject.
 
-*   Obtém dados de comunicação
+*   ObtÃ©m dados de comunicaÃ§Ã£o
     PERFORM f_dados_comunicacao USING vl_cand_hrobject.
 
 *   Atualiza o telefone residencial do candidado
     PERFORM f_atualiza_telef USING vl_cand_hrobject c_01 wa_dados-telcdt.
 
-*   Atualiza o endereço do candidado
+*   Atualiza o endereÃ§o do candidado
     PERFORM f_atualiza_endereco USING vl_cand_hrobject.
 
-*   Obtém / Atualiza o infotipo 5200 (Número de inscrição)
+*   ObtÃ©m / Atualiza o infotipo 5200 (NÃºmero de inscriÃ§Ã£o)
     PERFORM f_atualiza_5200 USING vl_cand_hrobject.
 
-*   Efetua a candidatura (associa o candidato à requisição: objeto NE)
+*   Efetua a candidatura (associa o candidato Ã  requisiÃ§Ã£o: objeto NE)
     PERFORM f_efetua_candidatura CHANGING vl_cand_hrobject  wl_records.
 
   ENDLOOP.
@@ -335,11 +331,10 @@ ENDFORM.                    "f_dados_pessoais
 FORM f_efetua_candidatura  CHANGING  p_cand_hrobject TYPE hrobject
                                      p_records       TYPE LINE OF rcf_t_p1000.
 
-  DATA:
-    lo_cdcy          TYPE REF TO cl_hrrcf_candidacy_bl,
-    wl_cand_cdcy     TYPE rcf_s_cand_cdcy,
-    tl_cdcy_hrobject TYPE hrobject_tab,
-    wl_cdcy_hrobject TYPE hrobject.
+ DATA:   lo_cdcy          TYPE REF TO cl_hrrcf_candidacy_bl,
+         wl_cand_cdcy     TYPE rcf_s_cand_cdcy,
+         tl_cdcy_hrobject TYPE hrobject_tab,
+         wl_cdcy_hrobject TYPE hrobject.
 
   CLEAR:lo_candidacy.
 
@@ -351,17 +346,17 @@ FORM f_efetua_candidatura  CHANGING  p_cand_hrobject TYPE hrobject
 
   CHECK lo_cdcy IS BOUND.
 
-* Primeiro verifica se o candidato possui candidaturas para a requisição
-  READ TABLE t_cand_cdcy INTO wl_cand_cdcy
-                      WITH KEY cand_hrobject = p_cand_hrobject.
+* Primeiro verifica se o candidato possui candidaturas para a requisiÃ§Ã£o
+  READ TABLE t_cand_cdcy INTO wl_cand_cdcy  WITH KEY cand_hrobject = p_cand_hrobject.
   IF sy-subrc IS INITIAL.
     wa_result = wa_dados-cpf.
+    
     PERFORM f_grava_log USING wa_result 'E' wa_dados-cpf text-016.
-
+    
   ELSE.
-* Se não possuir, efetua a candidatura (cria objeto NE)
+  
+* Se nÃ£o possuir, efetua a candidatura (cria objeto NE)
     TRY.
-
         CLEAR lo_candidacy.
         CALL METHOD lo_cdcy->create_candidacy
           EXPORTING
@@ -370,7 +365,7 @@ FORM f_efetua_candidatura  CHANGING  p_cand_hrobject TYPE hrobject
           IMPORTING
             po_candidacy     = lo_candidacy.
 
-*       Carrega a work area com ligação NE (infotipo 1000)
+*       Carrega a work area com ligaÃ§Ã£o NE (infotipo 1000)
         READ TABLE lo_candidacy->records INTO p_records INDEX 1.
 
       CATCH cx_hrrcf INTO og_ex.
@@ -465,6 +460,7 @@ FORM f_atualiza_5200  USING  p_cand_hrobject TYPE hrobject.
         OTHERS              = 6.
 
     COMMIT WORK AND WAIT .
+    
   ELSE.
 
     LOOP AT  tl_5200 ASSIGNING <fs_5200>.
@@ -482,6 +478,7 @@ FORM f_atualiza_5200  USING  p_cand_hrobject TYPE hrobject.
       <fs_5200>-zzclassificacao_fc_d      = wa_dados-clafncdtd.
       <fs_5200>-zzclassificacao_fc_cn     = wa_dados-clafncdtn.
       <fs_5200>-zzindicacao_cc_sj         = wa_dados-incdtsubj.
+      
     ENDLOOP.
 
     IF NOT tl_5200 IS INITIAL.
@@ -501,8 +498,7 @@ FORM f_atualiza_5200  USING  p_cand_hrobject TYPE hrobject.
     ENDIF.
   ENDIF.
 
-*** Atualiza Status do Infotipo/Ligação Temporal 5201
-
+*** Atualiza Status do Infotipo/LigaÃ§Ã£o Temporal 5201
   IF NOT tl_5200 IS INITIAL.
     CALL FUNCTION 'RH_READ_INFTY'
       EXPORTING
@@ -542,13 +538,13 @@ FORM f_atualiza_5200  USING  p_cand_hrobject TYPE hrobject.
           OTHERS              = 6.
 
       COMMIT WORK AND WAIT .
+      
     ELSE.
 
       LOOP AT tl_5102 ASSIGNING <fs_5102>.
         <fs_5102>-status = c_status.
       ENDLOOP.
-
-
+      
       CALL FUNCTION 'RH_UPDATE_INFTY'
         EXPORTING
           vtask               = c_vtask "PD Update in Buffer = "D"
@@ -566,7 +562,6 @@ FORM f_atualiza_5200  USING  p_cand_hrobject TYPE hrobject.
     ENDIF.
 
   ENDIF.
-
 
 ENDFORM.                    "f_atualiza_5200
 *&---------------------------------------------------------------------*
@@ -598,7 +593,7 @@ FORM f_atualiza_endereco  USING  p_cand_hrobject TYPE hrobject.
 
   TRY.
       SORT t_current_addr BY channel.
-*    Verifica se é modificação ou inserção de registro
+*    Verifica se Ã© modificaÃ§Ã£o ou inserÃ§Ã£o de registro
       READ TABLE t_current_addr
         WITH KEY channel = wl_addressdata-channel INTO wl_address BINARY SEARCH.
 
@@ -621,7 +616,7 @@ FORM f_atualiza_endereco  USING  p_cand_hrobject TYPE hrobject.
         ENDIF.
       ENDIF.
 
-*     Atualiza o endereço do candidato
+*     Atualiza o endereÃ§o do candidato
       IF vl_operation NE space.
 
         CALL METHOD og_bupa->maintain_address_data
@@ -671,9 +666,9 @@ FORM f_atualiza_telef  USING  p_cand_hrobject TYPE hrobject
   TRY.
       SORT t_current_telef BY channel.
       READ TABLE t_current_telef
-        WITH KEY channel = wl_telefondata-channel INTO wl_telefon BINARY SEARCH.
+      WITH KEY channel = wl_telefondata-channel INTO wl_telefon BINARY SEARCH.
 
-*     Verifica se é modificação ou inserção de registro
+*     Verifica se Ã© modificaÃ§Ã£o ou inserÃ§Ã£o de registro
       IF sy-subrc EQ 0.
         IF wl_telefondata-telephone IS INITIAL.
           vl_operation = cl_hrrcf_abstract_controller=>delete_operation.
@@ -737,7 +732,7 @@ FORM f_dados_comunicacao  USING  p_cand_hrobject TYPE hrobject.
 
   REFRESH: t_current_telef, t_current_addr, t_current_email.
 
-* Obtém dados atuais de telefone, endereço e e-mail
+* ObtÃ©m dados atuais de telefone, endereÃ§o e e-mail
   TRY.
       CALL METHOD og_bupa->get_contact_data
         EXPORTING
@@ -774,7 +769,7 @@ FORM f_atualiza_5202  USING  p_cand_hrobject TYPE hrobject.
   CHECK lo_5202 IS BOUND.
 
   TRY.
-*     Obtém o infotipo 5202
+*     ObtÃ©m o infotipo 5202
       CALL METHOD lo_5202->get_record
         EXPORTING
           object_id = p_cand_hrobject-objid.
@@ -819,9 +814,9 @@ FORM f_atualiza_5202  USING  p_cand_hrobject TYPE hrobject.
 
       wl_erro_5202 = lo_5202->return_message.
 
-
       IF NOT wl_erro_5202 IS INITIAL.
         wa_result = wl_erro_5202.
+        
         PERFORM f_grava_log USING wa_result vg_erro wa_dados-cpf text-006.
       ENDIF.
 
@@ -893,8 +888,7 @@ ENDFORM.                    "f_obtem_usuario
 *----------------------------------------------------------------------*
 FORM f_obtem_candidaturas .
 
-  DATA: lo_cdcy     TYPE REF TO cl_hrrcf_candidacy_bl.
-
+  DATA: lo_cdcy  TYPE REF TO cl_hrrcf_candidacy_bl.
 
   CHECK NOT t_data[] IS INITIAL.
 
@@ -906,12 +900,12 @@ FORM f_obtem_candidaturas .
 
   CHECK lo_cdcy IS BOUND.
 
-* Objeto NB (Requisição)
+* Objeto NB (RequisiÃ§Ã£o)
   wa_req_hrobject-plvar = vg_plvar.
   wa_req_hrobject-otype = 'NB'.
-  wa_req_hrobject-objid = p_header.     "Requisição
+  wa_req_hrobject-objid = p_header.     "RequisiÃ§Ã£o
 
-* Obtém candidaturas (objeto NE) ligadas aos candidatos (objeto NA)
+* ObtÃ©m candidaturas (objeto NE) ligadas aos candidatos (objeto NA)
   TRY.
       CALL METHOD lo_cdcy->get_cdcy_list_cand_by_requi
         EXPORTING
@@ -924,12 +918,14 @@ FORM f_obtem_candidaturas .
   ENDTRY.
 
 ENDFORM.                    "f_obtem_candidaturas
+
 *&---------------------------------------------------------------------*
 *&      Form  f_processa_arquivo
 *&---------------------------------------------------------------------*
 *       text
 *----------------------------------------------------------------------*
-FORM f_processa_arquivo .
+FORM f_processa_arquivo.
+
   DATA: vl_index TYPE sy-index.
 
   IF NOT t_data[] IS INITIAL.
@@ -937,6 +933,7 @@ FORM f_processa_arquivo .
     LOOP  AT t_data INTO wa_data.
       wa_dados = wa_data.
       vl_index = sy-tabix.
+      
 *   Valida o CPF antes de gravar o registro
       PERFORM f_valida_cpf CHANGING wa_data-cpf  wa_result.
       IF NOT wa_result IS INITIAL.
@@ -975,7 +972,7 @@ FORM f_cria_usuario .
     vl_email            = wa_dados-endeletr.
     vl_usuario          = wa_dados-cpf.
 
-*   Verifica se o candidato já existe na base usando o Alias (CPF)
+*   Verifica se o candidato jÃ¡ existe na base usando o Alias (CPF)
     PERFORM f_obtem_usuario CHANGING vl_usuario  vl_bname.
 
     CHECK vl_bname IS INITIAL.
@@ -1025,17 +1022,16 @@ FORM f_obtem_var_planejamento.
   ENDIF.
 
 ENDFORM.                    "f_obtem_var_planejamento
+
 *&---------------------------------------------------------------------*
 *&      Form  f_carrega_arquivo
 *&---------------------------------------------------------------------*
 *       text
 *----------------------------------------------------------------------*
 FORM f_carrega_arquivo.
-*  IF p_locl EQ 'X'.
+
   PERFORM z_upload_file.
-*  ELSEIF p_serv EQ 'X'.
-*    PERFORM z_upload_file_serv.
-*  ENDIF.
+
 ENDFORM.                    "f_carrega_arquivo
 
 *&---------------------------------------------------------------------*
@@ -1072,7 +1068,7 @@ FORM z_header_f4help.
 * Obtem dados do match code
   PERFORM z_check_header.
 
-* Chamada da Função F4
+* Chamada da FunÃ§Ã£o F4
   CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
     EXPORTING
       retfield        = 'OBJID'
@@ -1102,7 +1098,7 @@ FORM z_buscafile CHANGING c_file LIKE rlgrap-filename.
           INCLUDE STRUCTURE sdokpath.
   DATA: END OF t_path.
 
-*---> função chama o file e armazena o caminho
+*---> funÃ§Ã£o chama o file e armazena o caminho
   CALL FUNCTION 'TMP_GUI_FILE_OPEN_DIALOG'
     EXPORTING
       window_title   = 'Selecionar Arquivo'
@@ -1113,7 +1109,7 @@ FORM z_buscafile CHANGING c_file LIKE rlgrap-filename.
       cntl_error     = 1
       OTHERS         = 2.
 
-*---> se erro dispara mensagem, senão, armazena caminho em variável
+*---> se erro dispara mensagem, senÃ£o, armazena caminho em variÃ¡vel
   IF sy-subrc <> 0.
     MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
             WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
@@ -1131,16 +1127,17 @@ ENDFORM.                    " z_buscafile
 FORM z_check_requisicao.
 
   IF p_header IS INITIAL.
-    MESSAGE 'Informar Requisição' TYPE 'E'.
+    MESSAGE 'Informar RequisiÃ§Ã£o' TYPE 'E'.
   ELSE.
     PERFORM z_check_header.
     SORT t_f4header BY objid.
     READ TABLE t_f4header TRANSPORTING NO FIELDS WITH KEY objid = p_header BINARY SEARCH.
 
     IF sy-subrc NE 0.
-      MESSAGE 'Informar Requisição com Status 1' TYPE 'E'.
+      MESSAGE 'Informar RequisiÃ§Ã£o com Status 1' TYPE 'E'.
     ENDIF.
   ENDIF.
+  
 ENDFORM.                    "z_check_requisicao
 *&---------------------------------------------------------------------*
 *&      Form  z_check_header
@@ -1153,8 +1150,8 @@ FORM z_check_header.
 
   SELECT  objid
           header
-       FROM hrp5125
-       INTO TABLE t_f4header
+          FROM hrp5125
+          INTO TABLE t_f4header
   WHERE otype  EQ 'NB' AND
         status EQ 1.
 
@@ -1175,7 +1172,6 @@ FORM f_grava_log  USING  p_msg     TYPE any
                          p_infty   TYPE any.
 
   DATA: wl_return TYPE  bapiret2,
-
         vl_msgv1  TYPE  symsgv,
         vl_msgv2  TYPE  symsgv,
         vl_msgv3  TYPE  symsgv.
@@ -1227,7 +1223,7 @@ FORM f_valida_processamento.
 * Valida processamento background
   IF NOT sy-binpt IS INITIAL OR
      NOT sy-batch IS INITIAL.
-*     Msg: Processamento background não permitido para arquivo local
+*     Msg: Processamento background nÃ£o permitido para arquivo local
     MESSAGE e000(yhcm) WITH text-002.
     LEAVE LIST-PROCESSING.
   ENDIF.
