@@ -1,0 +1,407 @@
+*&---------------------------------------------------------------------*
+*& Report  ZSRAGERDAU
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  zsragerdau.
+
+*** Types
+TYPES : BEGIN OF ty_sraentrada,
+          dias_nmc     TYPE n LENGTH 5,
+          semana       TYPE n LENGTH 5,
+          dias_esc     TYPE c LENGTH 15,
+          colaborador  TYPE c LENGTH 8,
+          atividade    TYPE c LENGTH 8,
+          validados    TYPE c LENGTH 3,
+          tipo_hora    TYPE c LENGTH 10,
+          descricao    TYPE c LENGTH 32,
+          horas        TYPE c LENGTH 6,
+         END OF ty_sraentrada,
+
+      BEGIN OF ty_srasaida,
+        codatividade   TYPE c LENGTH 32,
+        atividade      TYPE c LENGTH 32,
+        horas          TYPE c LENGTH 5,
+        colaborador    TYPE c LENGTH 8,
+      END OF ty_srasaida,
+
+      BEGIN OF ty_erro,
+        atividade      TYPE c LENGTH 32,
+        colaborador    TYPE c LENGTH 8,
+        dia            TYPE n LENGTH 3,
+      END OF ty_erro.
+
+*** Tabelas Internas
+DATA : t_sraentrada    TYPE TABLE OF ty_sraentrada,
+       t_srasaida      TYPE TABLE OF ty_srasaida,
+       t_erro          TYPE TABLE OF ty_erro,
+       t_excel         TYPE kcde_cells OCCURS 0 WITH HEADER LINE.
+
+*** Workareas
+DATA : wa_sraentrada   TYPE ty_sraentrada,
+       wa_srasaida     TYPE ty_srasaida,
+       wa_erro         TYPE ty_erro,
+       wa_excel        TYPE kcde_cells .
+
+*** Variaveis
+DATA : v_total         TYPE n LENGTH 4,
+       ld_index        TYPE i.
+
+*** FieldSymbols
+FIELD-SYMBOLS : <fs_sraentrada> TYPE ty_sraentrada,
+                <fs>.
+
+*** Strings
+DATA: BEGIN OF t_arq1 OCCURS 0,
+    line(1000)  TYPE c,
+END OF t_arq1.
+
+DATA : w_arq TYPE string.
+
+*** Declarações ALV
+DATA:
+  t_listheader   TYPE slis_t_listheader,
+* para primeira alv
+  t_fieldcat     TYPE slis_t_fieldcat_alv   WITH HEADER LINE,
+* segunda alv
+  t_fieldcatvbrp TYPE slis_t_fieldcat_alv   WITH HEADER LINE,
+* faz parte da 1 alv. indica o campo que vai ser index e totalizado
+  t_sort         TYPE slis_sortinfo_alv     OCCURS 0 WITH HEADER LINE,
+  v_listheader   TYPE slis_listheader.    "Cabeçalho
+
+*****************************************************************
+*** Tela de Seleção.
+SELECTION-SCREEN BEGIN OF BLOCK 2 WITH FRAME TITLE text-001.
+PARAMETERS    : p_file  LIKE rlgrap-filename DEFAULT 'C:\Escolha o caminho do arquivo'.
+SELECTION-SCREEN END OF BLOCK 2.
+
+*** Tela de seleção do log de erro
+SELECTION-SCREEN BEGIN OF BLOCK 3 WITH FRAME TITLE text-002.
+PARAMETERS    : p_file2 LIKE rlgrap-filename DEFAULT 'C:\Users\consultor\Desktop'.
+SELECTION-SCREEN END OF BLOCK 3.
+*-----------------------------------------------------------------*
+INITIALIZATION.
+*-----------------------------------------------------------------*
+
+*----------------------------*
+* Evento AT SELECTION-SCREEN *
+*----------------------------*
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  PERFORM seleciona_caminho_file USING p_file.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file2.
+  PERFORM filepath_f4help USING p_file2.
+*-----------------------------------------------------------------*
+START-OF-SELECTION.
+*-----------------------------------------------------------------*
+  CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
+    EXPORTING
+      text = 'Aguarde... Programa em processamento.'.
+
+  PERFORM z_recebe_arquivo.
+  PERFORM z_valida_arquivo TABLES t_sraentrada.
+  PERFORM z_vaida_dados.
+  PERFORM z_cria_alv.
+  PERFORM z_chama_alv.
+
+  IF t_erro[] IS NOT INITIAL.
+    PERFORM z_gera_log_erro.
+  ELSE.
+    MESSAGE 'Não existem registros com erro' TYPE 'I'.
+  ENDIF.
+
+END-OF-SELECTION.
+*----------------------------------------------------------------*
+*&---------------------------------------------------------------*
+*&      Form  SELECIONA_CAMINHO_FILE
+*&---------------------------------------------------------------*
+FORM seleciona_caminho_file USING l_filename TYPE c.
+
+  DATA: l_file LIKE rlgrap-filename.
+
+  CALL FUNCTION 'WS_FILENAME_GET'
+    EXPORTING
+      def_filename = ' '
+      def_path     = 'C:\'
+      mask         = ',Todos,*.*, csv,*.csv,Textos,*.txt,'
+      mode         = 'O'
+      title        = text-002
+    IMPORTING
+      filename     = l_file
+    EXCEPTIONS
+      OTHERS.
+
+  IF sy-subrc EQ 0.
+    l_filename = l_file.
+    p_file = l_file.
+  ENDIF.
+
+ENDFORM.                    " SELECIONA_CAMINHO_FILE
+*&---------------------------------------------------------------------*
+*&      Form  Z_RECEBE_ARQUIVO
+*&---------------------------------------------------------------------*
+FORM z_recebe_arquivo.
+
+  CALL FUNCTION 'KCD_EXCEL_OLE_TO_INT_CONVERT'
+    EXPORTING
+      filename                = p_file
+      i_begin_col             = 1
+      i_begin_row             = 1
+      i_end_col               = 9
+      i_end_row               = 50000
+    TABLES
+      intern                  = t_excel
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+
+ENDFORM.                    " Z_RECEBE_ARQUIVO
+*&---------------------------------------------------------------------*
+*&      Form  Z_VALIDA_ARQUIVO
+*&---------------------------------------------------------------------*
+FORM z_valida_arquivo TABLES p_download.
+
+  IF t_excel[] IS INITIAL.
+    MESSAGE 'Erro ao carregar o arquivo' TYPE 'E'.
+  ELSE.
+    SORT t_excel BY row col.
+    LOOP AT t_excel.
+      IF sy-tabix = 1 OR sy-tabix = 2 OR
+         sy-tabix = 3 OR sy-tabix = 4 OR sy-tabix = 5 OR
+         sy-tabix = 6 OR sy-tabix = 7 OR sy-tabix = 8 OR sy-tabix = 9.
+        CONTINUE.
+      ENDIF.
+      MOVE : t_excel-col TO ld_index.
+      ASSIGN COMPONENT ld_index OF STRUCTURE
+      p_download TO <fs>.
+      MOVE : t_excel-value TO <fs>.
+      TRANSLATE <fs> TO UPPER CASE.
+      AT END OF row.
+        APPEND p_download.
+        CLEAR p_download.
+      ENDAT.
+    ENDLOOP.
+  ENDIF.
+
+  t_sraentrada[] = p_download[].
+
+ENDFORM.                    " Z_VALIDA_ARQUIVO
+*&---------------------------------------------------------------------*
+*&      Form  Z_VAIDA_DADOS
+*&---------------------------------------------------------------------*
+FORM z_vaida_dados .
+
+  LOOP AT t_sraentrada INTO wa_sraentrada.
+    CASE wa_sraentrada-descricao(3).
+      WHEN 'ET '.
+        MOVE : wa_sraentrada-descricao+3(9) TO wa_srasaida-codatividade,
+               wa_sraentrada-descricao(3)   TO wa_srasaida-atividade.
+      WHEN 'COD'.
+        MOVE : wa_sraentrada-descricao+4(9) TO wa_srasaida-codatividade,
+               wa_sraentrada-descricao(3)   TO wa_srasaida-atividade.
+      WHEN 'CET'.
+        MOVE : wa_sraentrada-descricao+4(9) TO wa_srasaida-codatividade,
+               wa_sraentrada-descricao(3)   TO wa_srasaida-atividade.
+      WHEN 'QA '.
+        MOVE : wa_sraentrada-descricao+3(9) TO wa_srasaida-codatividade,
+               wa_sraentrada-descricao(3)   TO wa_srasaida-atividade.
+      WHEN 'RW '.
+        MOVE : wa_sraentrada-descricao+3(9) TO wa_srasaida-codatividade,
+               wa_sraentrada-descricao(3)   TO wa_srasaida-atividade.
+      WHEN 'ADM'.
+        MOVE : 'Coordenação Off-site'       TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN 'PMO'.
+        MOVE : 'PMO'                        TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN 'AGU'.
+        MOVE : 'Aguardando demanda'         TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN 'GER'.
+        MOVE : 'Gerenciamento'              TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN 'REU'.
+        MOVE : 'Reunião'                    TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN 'LÍD'.
+        MOVE : 'Líder'                      TO wa_srasaida-codatividade,
+               space                        TO wa_srasaida-atividade.
+      WHEN OTHERS.
+        MOVE : wa_sraentrada-descricao   TO wa_erro-atividade,
+               wa_sraentrada-colaborador TO wa_erro-colaborador,
+               wa_sraentrada-dias_nmc    TO wa_erro-dia.
+
+        APPEND wa_erro TO t_erro.
+        CLEAR wa_erro.
+        CONTINUE.
+
+    ENDCASE.
+
+    MOVE : wa_sraentrada-horas       TO wa_srasaida-horas,
+           wa_sraentrada-colaborador TO wa_srasaida-colaborador.
+
+    APPEND wa_srasaida TO t_srasaida.
+    CLEAR wa_srasaida .
+
+  ENDLOOP.
+
+  SORT t_srasaida BY codatividade.
+
+ENDFORM.                    " Z_VAIDA_DADOS
+*&---------------------------------------------------------------------*
+*&      Form  Z_CRIA_ALV
+*&---------------------------------------------------------------------*
+FORM z_cria_alv .
+
+  CLEAR t_fieldcat.
+  t_fieldcat-fieldname     = 'CODATIVIDADE'.    " nome do campo
+  t_fieldcat-tabname       = 'T_SRASAIDA'.      " tabela interna
+  t_fieldcat-reptext_ddic  = 'Código do produto'.
+  t_fieldcat-inttype       = 'C'.               " tipo
+  t_fieldcat-outputlen     = 32.                " tamanho
+  APPEND t_fieldcat.
+
+  CLEAR t_fieldcat.
+  t_fieldcat-fieldname     = 'ATIVIDADE'.
+  t_fieldcat-tabname       = 'T_SRASAIDA'.
+  t_fieldcat-reptext_ddic  = 'Atividade'.
+  t_fieldcat-inttype       = 'C'.
+  t_fieldcat-outputlen     = 32.
+  APPEND t_fieldcat.
+
+  CLEAR t_fieldcat.
+  t_fieldcat-fieldname     = 'HORAS'.
+  t_fieldcat-tabname       = 'T_SRASAIDA'.
+  t_fieldcat-reptext_ddic  = 'Horas'.
+  t_fieldcat-inttype       = 'C'.
+  t_fieldcat-outputlen     = 5.
+  APPEND t_fieldcat.
+
+  CLEAR t_fieldcat.
+  t_fieldcat-fieldname     = 'COLABORADOR'.
+  t_fieldcat-tabname       = 'T_SRASAIDA'.
+  t_fieldcat-reptext_ddic  = 'Colaborador'.
+  t_fieldcat-inttype       = 'C'.
+  t_fieldcat-outputlen     = 15.
+  APPEND t_fieldcat.
+
+ENDFORM.                    " Z_CRIA_ALV
+*&---------------------------------------------------------------------*
+*&      Form  Z_CHAMA_ALV
+*&---------------------------------------------------------------------*
+FORM z_chama_alv .
+
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+      i_callback_program     = sy-repid            " nome do programa
+      i_callback_top_of_page = 'ZF_TOP_OF_PAGE' " cabecalho
+      it_fieldcat            = t_fieldcat[]       " tabela das colunas
+    TABLES
+      t_outtab               = t_srasaida              " tabela dos dados
+    EXCEPTIONS
+      program_error          = 1
+      OTHERS                 = 2.
+
+ENDFORM.                    " Z_CHAMA_ALV
+*-----------------------------------------------------------------------
+*       Form  zf_top_of_page
+*-----------------------------------------------------------------------
+*       Cabeçalho do relatório
+*-----------------------------------------------------------------------
+FORM zf_top_of_page.
+
+  DATA : line            TYPE slis_listheader,
+         standard_header TYPE slis_t_listheader,
+         l_saidt         TYPE string,
+         l_saihr(33)     TYPE c.
+
+  FREE : standard_header,
+         line.
+
+  l_saihr = 'SRA Softtek'.
+
+  line-typ  = 'H'.
+  line-info = l_saihr.
+  APPEND line TO standard_header.
+
+  WRITE sy-datum          TO l_saihr USING EDIT MASK ' __.__.____'.
+  CONCATENATE 'Data :   ' l_saihr INTO l_saihr.
+
+  line-typ  = 'S'.
+  line-info = l_saihr.
+  APPEND line TO standard_header.
+
+  CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'
+    EXPORTING
+      it_list_commentary = standard_header.
+
+ENDFORM.                    "zf_top_of_page
+*&---------------------------------------------------------------------*
+*&      Form  Z_GERA_LOG_ERRO
+*&---------------------------------------------------------------------*
+FORM z_gera_log_erro .
+
+*** Header do arquivo
+  CONCATENATE
+   'Atividade'
+   'Colaborador'
+   'Dia'
+   INTO t_arq1-line SEPARATED BY ';'.
+  APPEND t_arq1.
+
+*** Itens do arquivo
+  LOOP AT t_erro INTO wa_erro.
+    CONCATENATE wa_erro-atividade(32) wa_erro-colaborador(8) wa_erro-dia(3) INTO t_arq1-line SEPARATED BY ';'.
+    APPEND t_arq1.
+  ENDLOOP.
+
+*** Caminho do arquivo
+  CONCATENATE p_file2 'Relatório de Erro SRA' '.csv' INTO w_arq.
+
+*** Carrega Excel
+  CALL FUNCTION 'GUI_DOWNLOAD'
+    EXPORTING
+      filename = w_arq
+    TABLES
+      data_tab = t_arq1.
+
+  IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+ENDFORM.                    " Z_GERA_LOG_ERRO
+*&---------------------------------------------------------------------*
+*&      Form  filepath_f4help
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+FORM filepath_f4help USING p_path.
+
+  DATA: path_str TYPE string,
+        l_title  TYPE string.
+
+  l_title = text-002.                         " text-002 - Select Directory
+  CONDENSE l_title.
+
+  CALL METHOD cl_gui_frontend_services=>directory_browse
+    EXPORTING
+      window_title    = l_title
+    CHANGING
+      selected_folder = path_str
+    EXCEPTIONS
+      cntl_error      = 1.
+
+  CALL METHOD cl_gui_cfw=>flush
+    EXCEPTIONS
+      cntl_system_error = 1
+      cntl_error        = 2.
+
+  p_path = path_str.
+
+  IF sy-subrc IS NOT INITIAL.
+    MESSAGE 'Erro no diretório' TYPE 'E'.
+  ENDIF.
+
+ENDFORM.                    "filepath_f4help
