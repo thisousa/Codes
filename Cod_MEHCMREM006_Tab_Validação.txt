@@ -1,0 +1,121 @@
+*----------------------------------------------------------------------*
+***INCLUDE LZGFHCMTBI01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  TESTE  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+************************************************************************
+* Projeto: Conexão
+* Processo: Tabela de Validação de Funções por Agrupamento
+* GAP/Interface: MEHCMREM006
+* Programa: ZGFHCMTB
+* Objetivo do programa: Tabela de Validação de Funções por Agrupamento
+* Desenvolvedor: Thiago Ramos de Sousa
+* Data Criação: 14/03/2016
+************************************************************************
+* Histórico de Mudanças
+*----------------------------------------------------------------------*
+* Num.  Data        Autor          Request #   Descrição
+*
+
+"------------- Preenchimento da Descrição do Campo ID Agrup do Cargo -----------------"
+MODULE zfmhcm_preenche_campos INPUT.
+
+  "--------------- Declaração das Tabelas --------------"
+  DATA: lt_hrp1000  TYPE STANDARD TABLE OF p1000.
+  "-----------------------------------------------------"
+  "-------------- Declaração das Work Areas ------------"
+  DATA: wa_hrp1000 TYPE p1000.
+  "------------------------------------------------------
+  "------------- Declaração das Constantes -------------"
+  DATA: c_p     TYPE c VALUE 'P',
+        c_37(2) TYPE n VALUE '37'.
+  "-----------------------------------------------------"
+
+  IF zhcmt0002-cargo <> 0.
+
+    CALL FUNCTION 'RH_READ_INFTY_1000'
+      EXPORTING
+        plvar            = '01'
+        otype            = 'C'
+        objid            = zhcmt0002-cargo
+      TABLES
+        i1000            = lt_hrp1000
+      EXCEPTIONS
+        nothing_found    = 1
+        wrong_condition  = 2
+        wrong_parameters = 3
+        OTHERS           = 4.
+    IF sy-subrc = 0.
+
+      READ TABLE lt_hrp1000 INTO wa_hrp1000 WITH KEY objid = zhcmt0002-cargo.
+      IF sy-subrc = 0.
+        zhcmt0002-desc_cargo = wa_hrp1000-stext.
+      ENDIF.
+
+    ELSE.
+
+      MESSAGE text-001 TYPE 'E'.
+
+    ENDIF.
+  ENDIF.
+  "-----------------------------------------------------------------------------------"
+  "-------------- Preenchimento da Descrição do Campo ID da Função -------------------"
+
+  IF zhcmt0002-gr_reembolso IS NOT INITIAL.
+
+    SELECT  mandt,
+            spras,
+            morei,
+            ergru,
+            text25
+      FROM t706j
+      INTO TABLE @DATA(lt_t706j)
+      WHERE spras = @c_p  AND
+            morei = @c_37 AND
+            ergru = @zhcmt0002-gr_reembolso.
+
+    IF sy-subrc = 0.
+
+      READ TABLE lt_t706j INTO DATA(wa_t706j) WITH KEY ergru = zhcmt0002-gr_reembolso.
+      IF sy-subrc = 0.
+        zhcmt0002-desc_reembolso = wa_t706j-text25.
+      ENDIF.
+
+    ELSE.
+
+      MESSAGE text-002 TYPE 'E'.
+
+    ENDIF.
+  ENDIF.
+  "-----------------------------------------------------------------------------------"
+  "--------------- Preenchimento da Descrição do Grupo de Reembolso ------------------"
+
+  IF zhcmt0002-id_funcao <> 0.
+
+    SELECT mandt,
+           molga,
+           trfgb,
+           tgbtx
+      FROM t510g
+      INTO TABLE @DATA(lt_t510g)
+      WHERE molga = @c_37 AND
+            trfgb = @zhcmt0002-id_funcao.
+
+    IF sy-subrc = 0.
+
+      READ TABLE lt_t510g INTO DATA(wa_t510g) WITH KEY trfgb = zhcmt0002-id_funcao.
+      IF  sy-subrc = 0.
+        zhcmt0002-desc_funcao = wa_t510g-tgbtx.
+      ENDIF.
+
+    ELSE.
+
+      MESSAGE text-002 TYPE 'E'.
+
+    ENDIF.
+  ENDIF.
+  "-----------------------------------------------------------------------------------"
+ENDMODULE.
