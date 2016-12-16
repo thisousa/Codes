@@ -1,0 +1,27 @@
+REPORT ZCONVERT.
+
+
+DATA: number_type TYPE itcdp-tdnumberin, string TYPE tline-tdline.
+
+PARAMETERS: p_char TYPE itcdp-tdlcount,
+            r_01   TYPE c RADIOBUTTON GROUP r1 DEFAULT 'X',
+            r_02   TYPE c RADIOBUTTON GROUP r1.
+
+CASE abap_true.
+  WHEN r_01.
+    number_type = 'ROMAN'.
+  WHEN r_02.
+    number_type = 'ARABIC'.
+ENDCASE.
+
+CALL FUNCTION 'CONVERT_NUMBER'
+  EXPORTING
+    tdlcount   = p_char
+    tdnumberin = number_type
+    tdupper    = '1'
+    tdnumfixc  = '1'
+    tdnumoutl  = '00'
+  IMPORTING
+    string     = string.
+
+WRITE: / string.
